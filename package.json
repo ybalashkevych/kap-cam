@@ -1,6 +1,6 @@
 {
   "name": "kap-cam",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Loom-like webcam overlay for Kap (maintained fork: Studio Display, zoom, universal macOS binaries)",
   "repository": {
     "type": "git",

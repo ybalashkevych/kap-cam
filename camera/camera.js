@@ -30,11 +30,12 @@ ipcRenderer.on('data', (_, {
 }) => {
 	const scale = normalizeZoomScale(rawZoom);
 
-	/* Transform on #kap-zoom-inner: Chromium often ignores transform on <video> (GPU layer). */
+	/* Transform on #kap-zoom-inner: Chromium often ignores transform on <video> (GPU layer).
+	   Vertical origin ~46%: centers on face (eyes/nose); 18% was too high and favored forehead/hair. */
 	const css = `
       #kap-zoom-inner {
         transform: scale(${scale}) !important;
-        transform-origin: 50% 18% !important;
+        transform-origin: 50% 46% !important;
       }
       video {
         border-radius: ${borderRadius};
