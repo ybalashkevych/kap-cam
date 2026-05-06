@@ -48,6 +48,13 @@ const config = {
     required: true,
     default: 'Medium'
   },
+  mirror: {
+    title: 'Mirror (selfie)',
+    description: 'Flip the preview horizontally (like FaceTime). Turn off if text or logos must read correctly.',
+    enum: ['Yes', 'No'],
+    required: true,
+    default: 'Yes'
+  },
 };
 
 const zoomScales = {
@@ -72,6 +79,14 @@ function resolveZoomScale(raw) {
   }
   const n = Number(s);
   return Number.isFinite(n) && n > 0 ? n : zoomScales.Medium;
+}
+
+function resolveMirror(raw) {
+  if (raw == null || raw === '') {
+    return true;
+  }
+  const s = String(raw).trim().toLowerCase();
+  return s !== 'no' && s !== 'false' && s !== '0';
 }
 
 const getBounds = (cropArea, screenBounds, { width, height }) => {
@@ -125,7 +140,8 @@ const willStartRecording = async ({ state, config, apertureOptions: { screenId, 
     state.window.webContents.send('data', {
       videoDeviceName: config.get('device'),
       borderRadius: config.get('rounded') === "Circle" ? "50%" : config.get("rounded") === "Rounded" ? "16px" : "0px",
-      zoomScale: resolveZoomScale(config.get('zoom'))
+      zoomScale: resolveZoomScale(config.get('zoom')),
+      mirror: resolveMirror(config.get('mirror'))
     });
   });
 

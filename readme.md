@@ -6,7 +6,7 @@
 
 - **Studio Display / external cameras** — device list uses `AVCaptureDevice.DiscoverySession` (not the deprecated API that could omit external cameras).
 - **Reliable device selection** — matches Chromium `enumerateDevices()` labels to system names (bidirectional, case-insensitive).
-- **Digital zoom** — configurable crop/zoom in the overlay; transform is applied on a **wrapper** so Electron/Chromium actually applies it (not on `<video>`, which often ignores `transform`).
+- **Mirror (selfie)** — optional horizontal flip (`scaleX(-1)`), default on; turn off for readable text on clothing.
 - **Universal macOS binaries** — `devices` and `permissions` are built **arm64 + x86_64** (`lipo`) via `binaries/build.sh` (macOS 11+).
 
 Upstream lineage: [@karaggeorge/kap-camera](https://github.com/karaggeorge/kap-camera) → [@clearlysid/kap-cam](https://github.com/clearlysid/kap-cam) → this fork.
@@ -25,7 +25,7 @@ Upstream lineage: [@karaggeorge/kap-camera](https://github.com/karaggeorge/kap-c
    To pin a release:
 
    ```json
-   "kap-cam": "github:ybalashkevych/kap-cam#v1.1.0"
+   "kap-cam": "github:ybalashkevych/kap-cam#v1.1.2"
    ```
 
 3. In a terminal:

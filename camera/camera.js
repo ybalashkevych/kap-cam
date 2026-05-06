@@ -26,15 +26,20 @@ function normalizeZoomScale(raw) {
 ipcRenderer.on('data', (_, {
 	videoDeviceName,
 	borderRadius,
-	zoomScale: rawZoom
+	zoomScale: rawZoom,
+	mirror: mirrorEnabled
 }) => {
 	const scale = normalizeZoomScale(rawZoom);
+	const mirror = mirrorEnabled !== false;
+
+	const flip = mirror ? 'scaleX(-1)' : '';
 
 	/* Transform on #kap-zoom-inner: Chromium often ignores transform on <video> (GPU layer).
-	   Vertical origin ~46%: centers on face (eyes/nose); 18% was too high and favored forehead/hair. */
+	   Vertical origin ~46%: centers on face (eyes/nose); 18% was too high and favored forehead/hair.
+	   scaleX(-1) after scale: horizontal mirror (selfie) after zoom. */
 	const css = `
       #kap-zoom-inner {
-        transform: scale(${scale}) !important;
+        transform: scale(${scale}) ${flip} !important;
         transform-origin: 50% 46% !important;
       }
       video {
