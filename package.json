@@ -1,14 +1,13 @@
 {
   "name": "kap-cam",
-  "version": "1.0.1",
-  "description": "Loom-like webcam overlay for Kap",
-  "repository": "clearlysid/kap-cam",
-  "license": "MIT",
-  "author": {
-    "name": "Siddharth",
-    "email": "siddharth99c@gmail.com",
-    "url": "https://www.sid.me"
+  "version": "1.1.0",
+  "description": "Loom-like webcam overlay for Kap (maintained fork: Studio Display, zoom, universal macOS binaries)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ybalashkevych/kap-cam.git"
   },
+  "license": "MIT",
+  "author": "Yurii Balashkevych",
   "keywords": [
     "kap-plugin",
     "camera",
@@ -20,9 +19,9 @@
     "version": ">=3.3.2"
   },
   "scripts": {
-    "build-devices": "swiftc -o ./binaries/devices -target 'x86_64-apple-macosx10.14' ./binaries/devices.swift",
-    "build-permissions": "swiftc -o ./binaries/permissions -target 'x86_64-apple-macosx10.14' ./binaries/permissions.swift",
-    "build": "yarn run build-devices && yarn run build-permissions"
+    "build": "bash binaries/build.sh",
+    "build-devices": "bash -c 'MACOSX_DEPLOYMENT_TARGET=11.0 swiftc -O -o ./binaries/devices ./binaries/devices.swift'",
+    "build-permissions": "bash -c 'MACOSX_DEPLOYMENT_TARGET=11.0 swiftc -O -o ./binaries/permissions ./binaries/permissions.swift'"
   },
   "peerDependencies": {
     "electron": "*"

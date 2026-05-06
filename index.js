@@ -22,7 +22,7 @@ try {
 const config = {
   device: {
     title: 'Device',
-    description: 'Select a camera to display.',
+    description: 'Select a camera to display (names come from the system; Chromium may shorten labels).',
     enum: devices,
     required: true,
     default: 'Default'
@@ -41,7 +41,38 @@ const config = {
     required: true,
     default: 'Medium'
   },
+  zoom: {
+    title: 'Zoom (crop)',
+    description: 'Digital zoom: crops edges so you appear closer (e.g. head and shoulders). Applied in the overlay window.',
+    enum: ['None', 'Slight', 'Medium', 'Strong', 'Maximum'],
+    required: true,
+    default: 'Medium'
+  },
 };
+
+const zoomScales = {
+  None: 1,
+  Slight: 1.45,
+  Medium: 1.85,
+  Strong: 2.35,
+  Maximum: 2.9
+};
+
+function resolveZoomScale(raw) {
+  if (raw == null || raw === '') {
+    return zoomScales.None;
+  }
+  if (typeof raw === 'number' && Number.isFinite(raw) && raw > 0) {
+    return raw;
+  }
+  const s = String(raw).trim();
+  const hit = Object.keys(zoomScales).find(k => k.toLowerCase() === s.toLowerCase());
+  if (hit) {
+    return zoomScales[hit];
+  }
+  const n = Number(s);
+  return Number.isFinite(n) && n > 0 ? n : zoomScales.Medium;
+}
 
 const getBounds = (cropArea, screenBounds, { width, height }) => {
   return {
@@ -90,18 +121,17 @@ const willStartRecording = async ({ state, config, apertureOptions: { screenId, 
 
   state.window.loadFile(contentPath);
 
-  // state.window.openDevTools({ mode: 'detach' });
-
   state.window.webContents.on('did-finish-load', () => {
     state.window.webContents.send('data', {
       videoDeviceName: config.get('device'),
-      borderRadius: config.get('rounded') === "Circle" ? "50%" : config.get("rounded") === "Rounded" ? "16px" : "0px"
+      borderRadius: config.get('rounded') === "Circle" ? "50%" : config.get("rounded") === "Rounded" ? "16px" : "0px",
+      zoomScale: resolveZoomScale(config.get('zoom'))
     });
   });
 
   return new Promise(resolve => {
-    ipcMain.on('kap-camera-mount', resolve);
-    setTimeout(resolve, 5000); // Resolve in 5s if no event
+    ipcMain.once('kap-camera-mount', resolve);
+    setTimeout(resolve, 5000);
   });
 };
 
@@ -111,7 +141,7 @@ const didStopRecording = ({ state }) => {
   }
 };
 
-const configDescription = `Create a window showing the selected camera on your recording`;
+const configDescription = `Webcam overlay on recordings (device selection, digital zoom, external displays).`;
 
 const openSystemPreferences = path => shell.openExternal(`x-apple.systempreferences:com.apple.preference.security?${path}`);
 

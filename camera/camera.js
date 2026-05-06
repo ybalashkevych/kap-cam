@@ -3,11 +3,39 @@ const { ipcRenderer } = electron;
 
 const video = document.querySelector('#preview');
 
+/** Chromium labels often differ from AVFoundation localizedName used in Kap settings. */
+function deviceMatchesLabel(deviceLabel, configuredName) {
+	const label = (deviceLabel || '').trim();
+	const name = (configuredName || '').trim();
+	if (!label || !name || name === 'Default') {
+		return false;
+	}
+	const a = label.toLowerCase();
+	const b = name.toLowerCase();
+	return a.includes(b) || b.includes(a);
+}
+
+function normalizeZoomScale(raw) {
+	if (raw == null || raw === '') {
+		return 1;
+	}
+	const n = typeof raw === 'number' ? raw : Number(raw);
+	return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
 ipcRenderer.on('data', (_, {
 	videoDeviceName,
-	borderRadius
+	borderRadius,
+	zoomScale: rawZoom
 }) => {
+	const scale = normalizeZoomScale(rawZoom);
+
+	/* Transform on #kap-zoom-inner: Chromium often ignores transform on <video> (GPU layer). */
 	const css = `
+      #kap-zoom-inner {
+        transform: scale(${scale}) !important;
+        transform-origin: 50% 18% !important;
+      }
       video {
         border-radius: ${borderRadius};
       }
@@ -22,7 +50,9 @@ ipcRenderer.on('data', (_, {
 		const [defaultDevice] = videoDevices;
 
 		const device = (
-			videoDeviceName && videoDevices.find(d => d.label.includes(videoDeviceName))
+			videoDeviceName && videoDeviceName !== 'Default'
+				? videoDevices.find(d => deviceMatchesLabel(d.label, videoDeviceName))
+				: null
 		) || defaultDevice;
 
 		if (!device) {
@@ -32,22 +62,20 @@ ipcRenderer.on('data', (_, {
 
 		const { deviceId } = device;
 
-		let errorCallback = (error) => {
+		const errorCallback = (error) => {
 			console.log(
-				'There was an error connecting to the video stream:', error
+				'There was an error connecting to the video stream:',
+				error
 			);
+			ipcRenderer.send('kap-camera-mount');
 		};
 
-		window.navigator.webkitGetUserMedia(
-			{ video: true },
-			(localMediaStream) => {
-				video.src = window.URL.createObjectURL(localMediaStream);
-				video.onloadedmetadata = bindSavingPhoto;
-			}, errorCallback);
-
-		navigator.mediaDevices.getUserMedia({ video: { deviceId } }).then(stream => {
+		navigator.mediaDevices.getUserMedia({
+			video: deviceId ? { deviceId: { ideal: deviceId } } : true,
+			audio: false
+		}).then(stream => {
 			video.srcObject = stream;
 			ipcRenderer.send('kap-camera-mount');
-		}).catch(() => ipcRenderer.send('kap-camera-mount'));
+		}).catch(errorCallback);
 	}).catch(() => ipcRenderer.send('kap-camera-mount'));
-})
+});
